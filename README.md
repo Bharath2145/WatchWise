@@ -38,13 +38,13 @@ No Docker, cloud, CI/CD, or REST framework — this is a local monolith by desig
 ## Run it
 
 ```bat
-REM create env and install (CPU-only torch, ~1 GB)
+REM create env and install (CPU-only torch recommended, ~1 GB)
 uv venv .venv --python 3.11
 .venv\Scripts\activate
 uv pip install --index-url https://download.pytorch.org/whl/cpu torch==2.2.2 torchvision==0.17.2
-uv pip install -r requirements_utf8.txt
+uv pip install -r requirements.txt
 
-REM start
+REM start (or just double-click run.bat)
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver 127.0.0.1:8000
