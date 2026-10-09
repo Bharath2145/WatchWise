@@ -15,6 +15,9 @@ staticfiles/
 # Windows reserved device name - git cannot handle this file
 nul
 
+# Local-only interview prep material, not part of the app
+question on proj/
+
 # Editors
 .vscode/
 .idea/
