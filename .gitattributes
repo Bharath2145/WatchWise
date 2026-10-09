@@ -1,0 +1,3 @@
+# Exclude Django HTML templates from GitHub language stats
+# so Python shows as the repo's main language
+templates/**/*.html linguist-detectable=false
