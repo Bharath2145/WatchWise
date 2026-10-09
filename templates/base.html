@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Person Tracking System{% endblock %}</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --ww-yellow: #FFD700;
+            --ww-dark-bg: #000000;
+            --ww-card-bg: #1a1a1a;
+            --ww-text: #FFD700;
+            --ww-glass: rgba(17, 17, 17, 0.85);
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--ww-dark-bg);
+            color: var(--ww-text);
+            padding-top: 100px;
+            /* Space for the floating navbar */
+        }
+
+        .navbar {
+            background: var(--ww-glass) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-bottom: 2px solid var(--ww-yellow);
+            padding: 0.5rem 1.8rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            max-width: 90%;
+            border-radius: 50px;
+            z-index: 5000;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .navbar:hover {
+            border-color: var(--ww-yellow);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.15);
+        }
+
+        .navbar-brand {
+            color: var(--ww-yellow) !important;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+        }
+
+        .nav-link {
+            color: #ccc !important;
+            font-weight: 600;
+            margin: 0 12px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--ww-yellow);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after,
+        .nav-item.active .nav-link::after {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            color: var(--ww-yellow) !important;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background-color: var(--ww-yellow);
+            border-color: var(--ww-yellow);
+            color: #000;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: #FFC107;
+            border-color: #FFC107;
+            color: #000;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}">Person Tracking System</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'capture_person' %}">Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'authorization-list' %}">Authorization</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'person-list' %}">Persons</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'tracking_record_list' %}">Logs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'camera_config_list' %}">Cameras</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'monitor' %}">Live Monitor</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Include Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

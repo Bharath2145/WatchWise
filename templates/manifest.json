@@ -1,0 +1,17 @@
+{
+  "name": "WatchWise Person Tracking",
+  "short_name": "WatchWise",
+  "description": "Premium AI-powered Person Tracking System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#FFD700",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/isometric/512/visible.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

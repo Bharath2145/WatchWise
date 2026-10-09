@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Persons - Person Tracking System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .person-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid var(--ww-yellow);
+    }
+
+    .table-container {
+        background: var(--ww-card-bg);
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px solid #333;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .table {
+        color: #ddd;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid var(--ww-yellow);
+        color: var(--ww-yellow);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .table td {
+        border-top: 1px solid #333;
+        vertical-align: middle;
+    }
+
+    .badge-authorized {
+        background: #28a745;
+        color: white;
+    }
+
+    .badge-pending {
+        background: #ffc107;
+        color: black;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="display-5">Manage Persons</h2>
+        <p class="text-muted">Register and authorize individuals for tracking</p>
+    </div>
+    <div class="col text-right">
+        <a href="{% url 'capture_person' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus mr-1"></i> Register New Person
+        </a>
+    </div>
+</div>
+
+<div class="table-container shadow-lg">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Identity</th>
+                <th>Full Name</th>
+                <th>Permission</th>
+                <th class="text-right">Management</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for person in persons %}
+            <tr>
+                <td>
+                    {% if person.image %}
+                    <img src="{{ person.image.url }}" class="person-img" alt="{{ person.name }}">
+                    {% else %}
+                    <i class="fas fa-user-circle fa-3x text-secondary"></i>
+                    {% endif %}
+                </td>
+                <td class="font-weight-bold" style="color: var(--ww-yellow);">{{ person.name }}</td>
+                <td>
+                    {% if person.authorized %}
+                    <span class="badge badge-authorized px-3 py-2">Authorized</span>
+                    {% else %}
+                    <span class="badge badge-pending px-3 py-2">Pending Access</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    <a href="{% url 'person-detail' person.pk %}" class="btn btn-sm btn-outline-info mr-1"
+                        title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    {% if not person.authorized %}
+                    <a href="{% url 'person-authorize' person.pk %}" class="btn btn-sm btn-outline-success mr-1"
+                        title="Authorize">
+                        <i class="fas fa-check-circle"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'person-delete' person.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center text-muted py-5">
+                    <i class="fas fa-users-slash fa-3x mb-3 d-block"></i>
+                    No persons registered yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

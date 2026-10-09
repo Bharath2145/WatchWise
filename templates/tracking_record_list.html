@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Tracking Logs - Person Tracking System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .log-container {
+        background: var(--ww-card-bg);
+        border-radius: 12px;
+        padding: 30px;
+        border: 1px solid #333;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .status-in {
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    .status-out {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    .table {
+        color: #ddd;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid var(--ww-yellow);
+        color: var(--ww-yellow);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .table td {
+        border-top: 1px solid #333;
+        vertical-align: middle;
+    }
+
+    .filter-section {
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .form-control {
+        background-color: #222;
+        border: 1px solid #444;
+        color: #fff;
+    }
+
+    .form-control:focus {
+        background-color: #2a2a2a;
+        border-color: var(--ww-yellow);
+        color: #fff;
+        box-shadow: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="display-5">Tracking Logs</h2>
+        <p class="text-muted">Activity records for all monitored individuals</p>
+    </div>
+</div>
+
+<div class="log-container mb-5 shadow-lg">
+    <div class="filter-section shadow-sm mb-4">
+        <form method="get" class="form-row align-items-end">
+            <div class="col-md-4 mb-2">
+                <label for="search" class="small text-muted font-weight-bold">Search Names</label>
+                <input type="text" name="search" id="search" class="form-control" placeholder="Type a name..."
+                    value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-3 mb-2">
+                <label for="tracking_date" class="small text-muted font-weight-bold">Date Filter</label>
+                <input type="date" name="tracking_date" id="tracking_date" class="form-control"
+                    value="{{ request.GET.tracking_date }}">
+            </div>
+            <div class="col-md-5 mb-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-filter mr-1"></i> Apply Filters
+                </button>
+                <a href="{% url 'tracking_record_list' %}" class="btn btn-outline-secondary ml-2">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Person</th>
+                <th>Tracking Date</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in tracking_records %}
+            <tr>
+                <td class="font-weight-bold">{{ record.person.name }}</td>
+                <td>{{ record.date }}</td>
+                <td class="status-in">{{ record.check_in_time|time:"H:i:s" }}</td>
+                <td class="status-out">
+                    {% if record.check_out_time %}
+                    {{ record.check_out_time|time:"H:i:s" }}
+                    {% else %}
+                    <span class="text-muted small italic">Not yet</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.check_out_time %}
+                    <span class="badge badge-secondary">Completed</span>
+                    {% else %}
+                    <span class="badge badge-success">Active</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted py-5">
+                    <i class="fas fa-history fa-3x mb-3 d-block"></i>
+                    No tracking records found for this period.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

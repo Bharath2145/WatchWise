@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Authorization Management - WatchWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        padding-top: 30px;
+    }
+    .auth-title {
+        color: var(--ww-yellow);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+    }
+    .person-card {
+        background: var(--ww-card-bg);
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.3s ease;
+    }
+    .person-card:hover {
+        border-color: var(--ww-yellow);
+        transform: translateY(-2px);
+    }
+    .person-card.authorized {
+        border-left: 4px solid #28a745;
+    }
+    .person-card.unauthorized {
+        border-left: 4px solid #dc3545;
+    }
+    .person-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .person-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--ww-yellow);
+    }
+    .person-details h5 {
+        color: var(--ww-yellow);
+        margin: 0;
+        font-weight: 600;
+    }
+    .person-details p {
+        color: #888;
+        margin: 5px 0 0 0;
+        font-size: 0.9rem;
+    }
+    .toggle-btn {
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .toggle-btn.authorize {
+        background: #28a745;
+        color: white;
+    }
+    .toggle-btn.authorize:hover {
+        background: #218838;
+    }
+    .toggle-btn.revoke {
+        background: #dc3545;
+        color: white;
+    }
+    .toggle-btn.revoke:hover {
+        background: #c82333;
+    }
+    .badge-authorized {
+        background: #28a745;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+    }
+    .badge-pending {
+        background: #dc3545;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container auth-container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="auth-title text-center">Authorization Management</h2>
+            
+            <div class="mb-4 text-center">
+                <a href="{% url 'capture_person' %}" class="btn btn-warning mr-2">
+                    <i class="fas fa-user-plus mr-2"></i>Register New Person
+                </a>
+                <a href="{% url 'person-list' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-users mr-2"></i>View All Persons
+                </a>
+            </div>
+
+            {% for person in persons %}
+            <div class="person-card {% if person.authorized %}authorized{% else %}unauthorized{% endif %}">
+                <div class="person-info">
+                    {% if person.image %}
+                    <img src="{{ person.image.url }}" alt="{{ person.name }}" class="person-img">
+                    {% else %}
+                    <img src="https://via.placeholder.com/60" alt="{{ person.name }}" class="person-img">
+                    {% endif %}
+                    <div class="person-details">
+                        <h5>{{ person.name }}</h5>
+                        <p>{{ person.email }} | {{ person.person_class }}</p>
+                        {% if person.authorized %}
+                        <span class="badge-authorized"><i class="fas fa-check-circle mr-1"></i>Authorized</span>
+                        {% else %}
+                        <span class="badge-pending"><i class="fas fa-clock mr-1"></i>Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <form method="POST" action="{% url 'person-authorize' person.pk %}">
+                    {% csrf_token %}
+                    {% if person.authorized %}
+                    <button type="submit" name="authorized" value="false" class="toggle-btn revoke">
+                        <i class="fas fa-times mr-2"></i>Revoke
+                    </button>
+                    {% else %}
+                    <button type="submit" name="authorized" value="true" class="toggle-btn authorize">
+                        <i class="fas fa-check mr-2"></i>Authorize
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <div class="alert alert-dark border-warning" style="background: #111; color: var(--ww-yellow);">
+                    <i class="fas fa-users mr-2"></i>No persons registered yet.
+                    <a href="{% url 'capture_person' %}" class="text-white font-weight-bold ml-2">Register Now</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

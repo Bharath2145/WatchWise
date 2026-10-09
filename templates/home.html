@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Person Tracking System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #111 0%, #000 100%);
+        border: 1px solid var(--ww-yellow);
+        border-radius: 15px;
+        padding: 60px 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        margin-top: 20px;
+    }
+
+    .hero-section h1 {
+        color: var(--ww-yellow);
+        font-weight: 700;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .status-card {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        height: 100%;
+        text-decoration: none !important;
+        color: #ddd !important;
+    }
+
+    .status-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--ww-yellow);
+        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
+    }
+
+    .status-card i {
+        font-size: 2.2rem;
+        color: var(--ww-yellow);
+        margin-bottom: 15px;
+    }
+
+    .status-card p {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .btn-action {
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center mb-5">
+    <div class="mb-3">
+        {% if ai_engine_active %}
+        <span class="badge rounded-pill bg-success px-4 py-2 shadow-sm" style="border: 1px solid #fff;">
+            <i class="fas fa-satellite-dish mr-1"></i> AI ENGINE: ACTIVE
+        </span>
+        {% else %}
+        <span class="badge rounded-pill bg-danger px-4 py-2 shadow-sm" style="border: 1px solid rgba(255,255,255,0.2);">
+            <i class="fas fa-power-off mr-1"></i> AI ENGINE: STANDBY (OFFLINE)
+        </span>
+        {% endif %}
+    </div>
+    <h1>Face Based Person Tracking System</h1>
+    <p class="text-muted mb-4">Autonomous Identity Recognition & Logging</p>
+
+    <div class="row justify-content-center">
+        <div class="col-md-2 col-sm-4 mb-3">
+            <a href="{% url 'person-list' %}"
+                class="card status-card p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-user-friends"></i>
+                <p>Persons: {{ total_persons }}</p>
+            </a>
+        </div>
+        <div class="col-md-2 col-sm-4 mb-3">
+            <a href="{% url 'tracking_record_list' %}"
+                class="card status-card p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-database"></i>
+                <p>Records: {{ total_tracking_records }}</p>
+            </a>
+        </div>
+        <div class="col-md-2 col-sm-4 mb-3">
+            <a href="{% url 'tracking_record_list' %}"
+                class="card status-card p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-sign-in-alt"></i>
+                <p>Check-Ins: {{ total_check_ins }}</p>
+            </a>
+        </div>
+        <div class="col-md-2 col-sm-4 mb-3">
+            <a href="{% url 'tracking_record_list' %}"
+                class="card status-card p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-sign-out-alt"></i>
+                <p>Check-Outs: {{ total_check_outs }}</p>
+            </a>
+        </div>
+        <div class="col-md-2 col-sm-4 mb-3">
+            <a href="{% url 'camera_config_list' %}"
+                class="card status-card p-3 d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-video"></i>
+                <p>Cameras: {{ total_cameras }}</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="actions-section text-center">
+    <h3 class="mb-4">Quick Actions</h3>
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+        <a href="{% url 'capture_person' %}" class="btn btn-success btn-action m-2 shadow-sm">
+            <i class="fas fa-user-plus mr-2"></i> Register Person
+        </a>
+        
+        <a href="{% url 'authorization-list' %}" class="btn btn-info btn-action m-2 shadow-sm">
+            <i class="fas fa-user-shield mr-2"></i> Authorization
+        </a>
+
+        {% if not ai_engine_active %}
+        <a href="{% url 'capture_and_recognize' %}" class="btn btn-primary btn-action m-2 shadow-sm">
+            <i class="fas fa-play-circle mr-2"></i> Start AI Tracking
+        </a>
+        {% else %}
+        <a href="{% url 'stop_tracking' %}" class="btn btn-danger btn-action m-2 shadow-sm">
+            <i class="fas fa-stop-circle mr-2"></i> Stop AI Tracking
+        </a>
+        {% endif %}
+
+        <a href="{% url 'camera_config_list' %}" class="btn btn-warning btn-action m-2 shadow-sm"
+            style="color: #000; font-weight: 700;">
+            <i class="fas fa-video mr-2"></i> Manage Cameras
+        </a>
+        <a href="{% url 'monitor' %}" class="btn btn-dark btn-action m-2 shadow-sm">
+            <i class="fas fa-desktop mr-2"></i> Live Monitor
+        </a>
+    </div>
+</div>
+
+<footer class="mt-5 pt-4 pb-4 border-top text-center text-muted">
+    <p>Developed by ApyCoder | <a href="https://apycoder.com" target="_blank">Visit our website</a></p>
+    <p class="small">Version 1.1 - Person Tracking System</p>
+</footer>
+{% endblock %}

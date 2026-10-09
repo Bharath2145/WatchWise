@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Registration Success - WatchWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-page-container {
+        padding-top: 100px;
+        padding-bottom: 100px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .success-card {
+        background: var(--ww-card-bg);
+        border: 1px solid #333;
+        border-radius: 20px;
+        padding: 50px;
+        width: 100%;
+        max-width: 550px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+        text-align: center;
+    }
+
+    .success-icon {
+        font-size: 5rem;
+        color: var(--ww-yellow);
+        margin-bottom: 30px;
+        animation: scalePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes scalePop {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .success-title {
+        color: var(--ww-yellow);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+        font-size: 2rem;
+    }
+
+    .success-message {
+        color: #aaa;
+        font-size: 1.1rem;
+        margin-bottom: 40px;
+        line-height: 1.6;
+    }
+
+    .btn-action-group {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn-main {
+        background-color: var(--ww-yellow);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        padding: 15px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-main:hover {
+        background-color: #FFC107;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+        text-decoration: none;
+        color: #000;
+    }
+
+    .btn-secondary-link {
+        color: #777;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .btn-secondary-link:hover {
+        color: var(--ww-yellow);
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container success-page-container">
+    <div class="success-card shadow-lg">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+
+        <h2 class="success-title">Identity Registered!</h2>
+        <p class="success-message">
+            Your data has been securely encoded. Identity is currently <span class="text-warning">Pending Access</span>.
+            An administrator will review your registration shortly.
+        </p>
+
+        <div class="btn-action-group">
+            <a href="{% url 'home' %}" class="btn-main">
+                <i class="fas fa-desktop mr-2"></i> Return to Dahboard
+            </a>
+
+            <div class="d-flex justify-content-between mt-3">
+                <a href="{% url 'person-list' %}" class="btn-secondary-link">
+                    <i class="fas fa-users mr-1"></i> Management View
+                </a>
+                <a href="{% url 'capture_person' %}" class="btn-secondary-link">
+                    <i class="fas fa-plus mr-1"></i> New Registration
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

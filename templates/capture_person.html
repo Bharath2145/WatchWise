@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+
+{% block title %}Identity Registration - WatchWise{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --ww-dark-bg: #1a1a1a;
+        --ww-card-bg: #2a2a2a;
+        --ww-yellow: #FFD700;
+        /* Gold */
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--ww-dark-bg);
+        color: var(--ww-yellow);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .registration-container {
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+
+    .registration-card {
+        background: var(--ww-card-bg);
+        border: 1px solid #333;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.6);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .registration-title {
+        color: var(--ww-yellow);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .form-label {
+        color: var(--ww-yellow);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .form-control,
+    .form-select {
+        background-color: #111;
+        border: 1px solid #444;
+        color: #fff;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: #151515;
+        border-color: var(--ww-yellow);
+        color: #fff;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    }
+
+    .camera-preview-container {
+        position: relative;
+        width: 100%;
+        background: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        border: 2px solid #333;
+        aspect-ratio: 4/3;
+    }
+
+    #videoElement,
+    #ipCamFeed {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: none;
+    }
+
+    #videoElement {
+        transform: scaleX(-1);
+    }
+
+    .capture-overlay {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        z-index: 10;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+    }
+
+    .blink {
+        animation: blink-animation 1s steps(5, start) infinite;
+    }
+
+    @keyframes blink-animation {
+        to {
+            visibility: hidden;
+        }
+    }
+
+    .btn-submit {
+        background-color: var(--ww-yellow);
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        padding: 15px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: 100%;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+        background-color: #FFC107;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    }
+
+    #captureStatus {
+        border-top: 1px solid #333;
+        padding-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container registration-container">
+    <div class="registration-card shadow-lg">
+        <h2 class="registration-title">Register Identity</h2>
+
+        <div class="mb-4">
+            <label class="form-label"><i class="fas fa-video mr-2"></i> Select Active Source</label>
+            <select id="cameraSelector" class="form-select shadow-sm">
+                <option value="local">Primary Laptop Webcam</option>
+                {% for cam in cameras %}
+                {% if cam.camera_source != '0' %}
+                <option value="{{ cam.id }}" data-url="{% url 'video_feed' cam.id %}"
+                    data-single="{% url 'single_frame' cam.id %}">{{ cam.name }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="camera-preview-container">
+            <video id="videoElement" autoplay playsinline></video>
+            <img id="ipCamFeed" src="" alt="IP Camera Stream">
+            <div class="capture-overlay">
+                <i class="fas fa-circle text-danger mr-1 blink"></i> LIVE FEED
+            </div>
+        </div>
+
+        <form id="registrationForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="image_data" id="imageDataInput">
+            <canvas id="canvasElement" width="640" height="480" style="display:none;"></canvas>
+
+            <div class="form-group mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" placeholder="Enter registration name" required>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Contact Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="email@example.com" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="phone_number" class="form-control" placeholder="+1234567890" required>
+                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label">Department / Class</label>
+                <input type="text" name="person_class" class="form-control" placeholder="e.g. Administration, Grade 10A"
+                    required>
+            </div>
+
+            <button type="submit" class="btn btn-submit">
+                <i class="fas fa-user-check mr-2"></i> Confirm Registration
+            </button>
+        </form>
+
+        <div id="captureStatus" class="mt-4 text-center" style="display: none;">
+            <div class="spinner-border text-warning" role="status"></div>
+            <p class="mt-2" style="color: var(--ww-yellow);">Processing identity and encoding... Please wait.</p>
+            <img id="imagePreview" src="" class="img-thumbnail mt-2"
+                style="max-height: 150px; background: #000; border-color: #333;">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const video = document.getElementById('videoElement');
+    const ipCamFeed = document.getElementById('ipCamFeed');
+    const cameraSelector = document.getElementById('cameraSelector');
+    const canvas = document.getElementById('canvasElement');
+    const imageDataInput = document.getElementById('imageDataInput');
+    const registrationForm = document.getElementById('registrationForm');
+    const imagePreview = document.getElementById('imagePreview');
+    const captureStatus = document.getElementById('captureStatus');
+
+    let localStream = null;
+
+    // Helper to stop all active feeds (Local and IP)
+    function stopAllFeeds() {
+        // 1. Stop Local Camera Tracks
+        if (localStream) {
+            localStream.getTracks().forEach(track => {
+                track.stop();
+            });
+            localStream = null;
+        }
+        video.srcObject = null;
+        video.style.display = 'none';
+
+        // 2. Stop IP Camera Feed
+        ipCamFeed.src = "";
+        ipCamFeed.style.display = 'none';
+    }
+
+    // Initialize Local Camera
+    async function startLocalCamera() {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({
+                video: true
+            });
+            video.srcObject = localStream;
+            video.style.display = 'block';
+            ipCamFeed.style.display = 'none';
+        } catch (err) {
+            console.error("Webcam error: ", err);
+            // alert("Could not access webcam.");
+        }
+    }
+
+    startLocalCamera();
+
+    // Switch Camera Source
+    cameraSelector.addEventListener('change', function () {
+        if (this.value === 'local') {
+            stopAllFeeds();
+            startLocalCamera();
+        } else {
+            stopAllFeeds();
+
+            // Add wider delay before engaging IP stream to let backend release any directshow hardware locks
+            setTimeout(() => {
+                const selectedOption = cameraSelector.options[cameraSelector.selectedIndex];
+                const streamUrl = selectedOption.getAttribute('data-url') + '?t=' + new Date().getTime();
+
+                ipCamFeed.onload = function () {
+                    ipCamFeed.style.display = 'block';
+                };
+
+                ipCamFeed.onerror = function () {
+                    // If it fails (backend still locking), try fetching again politely in a second
+                    console.log("Stream fetch failed. Retrying...");
+                    setTimeout(() => {
+                        ipCamFeed.src = streamUrl;
+                    }, 1000);
+                };
+
+                ipCamFeed.src = streamUrl;
+            }, 500);
+        }
+    });
+
+    // Capture logic
+    registrationForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const ctx = canvas.getContext('2d');
+
+        if (cameraSelector.value === 'local') {
+            // Since the video is mirrored via CSS, we must also flip it horizontally when drawing to canvas
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Reset transform
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+            imageDataInput.value = dataURL;
+
+            imagePreview.src = dataURL;
+            captureStatus.style.display = 'block';
+
+            // Turn off camera before redirecting
+            stopAllFeeds();
+            registrationForm.submit();
+
+        } else {
+            // Fetch a clean frame from the backend to avoid Canvas CORS issues
+            try {
+                const selectedOption = cameraSelector.options[cameraSelector.selectedIndex];
+                const singleFrameUrl = selectedOption.getAttribute('data-single');
+
+                const response = await fetch(singleFrameUrl);
+                if (!response.ok) throw new Error("Frame not ready yet. Please try again in a moment.");
+
+                const blob = await response.blob();
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    const dataURL = reader.result;
+                    imageDataInput.value = dataURL;
+
+                    imagePreview.src = dataURL;
+                    captureStatus.style.display = 'block';
+
+                    // Turn off camera before redirecting
+                    stopAllFeeds();
+                    registrationForm.submit();
+                }
+                reader.readAsDataURL(blob);
+            } catch (e) {
+                console.error("Failed to capture IP Camera frame:", e);
+                alert("Failed to capture IP Camera frame: " + e.message);
+            }
+        }
+    });
+
+    // Ensure camera is released when navigating away from the page manually (menu change)
+    window.addEventListener('beforeunload', () => {
+        stopAllFeeds();
+    });
+</script>
+{% endblock %}

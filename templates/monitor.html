@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .monitor-container {
+        padding-top: 30px;
+    }
+
+    .monitor-title {
+        color: var(--ww-yellow);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+    }
+
+    .cam-card {
+        background: var(--ww-card-bg);
+        border: 1px solid #333;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .cam-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--ww-yellow);
+    }
+
+    .cam-header {
+        background: #222;
+        padding: 12px 15px;
+        border-bottom: 1px solid #333;
+    }
+
+    .cam-title {
+        color: var(--ww-yellow);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .cam-body {
+        padding: 0;
+        background: #000;
+        position: relative;
+        min-height: 240px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cam-footer {
+        background: #222;
+        padding: 10px 15px;
+        font-size: 0.85rem;
+        color: #888;
+        border-top: 1px solid #333;
+    }
+
+    .badge-auto {
+        background: #28a745;
+        color: white;
+        font-size: 0.7rem;
+    }
+    
+    #recognitionStatus.recognized {
+        border-color: #28a745 !important;
+        background: rgba(40, 167, 69, 0.2) !important;
+    }
+    
+    #recognitionStatus.recognized i,
+    #recognitionStatus.recognized span {
+        color: #28a745 !important;
+    }
+    
+    #recognitionStatus.unknown {
+        border-color: #dc3545 !important;
+        background: rgba(220, 53, 69, 0.2) !important;
+    }
+    
+    #recognitionStatus.unknown i,
+    #recognitionStatus.unknown span {
+        color: #dc3545 !important;
+    }
+    
+    #recognitionStatus.scanning {
+        border-color: #ffc107 !important;
+        background: rgba(255, 193, 7, 0.2) !important;
+    }
+    
+    #recognitionStatus.scanning i,
+    #recognitionStatus.scanning span {
+        color: #ffc107 !important;
+    }
+</style>
+
+<div class="container monitor-container">
+    <div class="row">
+        <div class="col-md-12 text-center mb-4">
+            <h2 class="monitor-title">Live Camera Monitor</h2>
+            <div class="d-flex justify-content-center align-items-center mb-4 flex-wrap">
+                <a href="{% url 'home' %}" class="btn btn-outline-warning mr-3">
+                    <i class="fas fa-arrow-left mr-2"></i> Dashboard
+                </a>
+
+                <div class="btn-group mr-3">
+                    <button id="startTracking" class="btn btn-success">
+                        <i class="fas fa-play mr-2"></i>Start
+                    </button>
+                    <button id="stopTracking" class="btn btn-danger">
+                        <i class="fas fa-stop mr-2"></i>Stop
+                    </button>
+                </div>
+
+                <div class="input-group" style="max-width: 350px;">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text bg-dark text-warning border-warning" for="cameraSelector">
+                            <i class="fas fa-camera mr-2"></i> Camera
+                        </label>
+                    </div>
+                    <select class="custom-select bg-dark text-white border-warning" id="cameraSelector">
+                        <option value="" selected disabled>-- Select Camera --</option>
+                        {% for config in cam_configs %}
+                        <option value="cam-{{ config.id }}">{{ config.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div id="trackingStatus" class="ml-3">
+                    {% if ai_engine_active %}
+                    <span class="badge badge-success"><i class="fas fa-circle mr-1"></i>AI Running</span>
+                    {% else %}
+                    <span class="badge badge-danger"><i class="fas fa-circle mr-1"></i>AI Stopped</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recognition Status Panel -->
+            <div class="col-md-12 text-center mb-3" id="recognitionPanel">
+                <div class="d-inline-block px-4 py-2 rounded" id="recognitionStatus" style="background: #222; border: 2px solid #444;">
+                    <i class="fas fa-user mr-2"></i>
+                    <span id="recognitionText">Scanning...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-md-12 mb-4" id="cameraContainer" style="display: none;">
+            {% for config in cam_configs %}
+            <div class="cam-view-wrapper" id="cam-{{ config.id }}" style="display: none;">
+                <div class="cam-card shadow-lg">
+                    <div class="cam-header d-flex justify-content-between align-items-center">
+                        <h5 class="cam-title">
+                            <i class="fas fa-video mr-2"></i> {{ config.name }}
+                            {% if config.rotation == -1 %}
+                            <span class="badge badge-auto ml-2">AUTO-ORIENTATION</span>
+                            {% endif %}
+                        </h5>
+                        {% if config.camera_source == '0' %}
+                        <span class="badge badge-warning">LOCAL</span>
+                        {% else %}
+                        <span class="badge badge-secondary">IP CAM</span>
+                        {% endif %}
+                    </div>
+                    <div class="cam-body">
+                        <img src="{% url 'video_feed' config.id %}?raw=1" class="img-fluid cam-feed-img"
+                            alt="Live Feed - {{ config.name }}" data-src="{% url 'video_feed' config.id %}?raw=1"
+                            style="width: 50%; max-width: 640px; height: auto; display: block; margin: 0 auto;">
+                    </div>
+                    <div class="cam-footer d-flex justify-content-between">
+                        <span><i class="fas fa-link mr-1"></i> {{ config.camera_source|truncatechars:30 }}</span>
+                        <span><i class="fas fa-bullseye mr-1"></i> {{ config.threshold }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="col-md-12 text-center py-5" id="noCameraMessage">
+            <div class="alert alert-dark border-warning" style="background: #111; color: var(--ww-yellow);">
+                <i class="fas fa-camera mr-2"></i> Please select a camera from the dropdown above to view the live feed.
+            </div>
+        </div>
+        
+        {% if not cam_configs %}
+        <div class="col-md-12 text-center py-5">
+            <div class="alert alert-dark border-warning" style="background: #111; color: var(--ww-yellow);">
+                <i class="fas fa-exclamation-triangle mr-2"></i> No cameras configured.
+                <a href="{% url 'camera_config_create' %}" class="text-white font-weight-bold ml-2">Add Camera
+                    Configuration</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selector = document.getElementById('cameraSelector');
+        const cameraContainer = document.getElementById('cameraContainer');
+        const noCameraMessage = document.getElementById('noCameraMessage');
+        const wrappers = document.querySelectorAll('.cam-view-wrapper');
+        const startBtn = document.getElementById('startTracking');
+        const stopBtn = document.getElementById('stopTracking');
+        const statusBadge = document.getElementById('trackingStatus');
+        const recognitionStatus = document.getElementById('recognitionStatus');
+        const recognitionText = document.getElementById('recognitionText');
+
+        function updateAIStatus() {
+            fetch('{% url "ai_status" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.active) {
+                        statusBadge.innerHTML = '<span class="badge badge-success"><i class="fas fa-circle mr-1"></i>AI Running</span>';
+                        startBtn.disabled = true;
+                        stopBtn.disabled = false;
+                    } else {
+                        statusBadge.innerHTML = '<span class="badge badge-danger"><i class="fas fa-circle mr-1"></i>AI Stopped</span>';
+                        startBtn.disabled = false;
+                        stopBtn.disabled = true;
+                    }
+                })
+                .catch(err => console.log(err));
+        }
+
+        function updateRecognitionStatus() {
+            fetch('{% url "recognition_status" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.active) {
+                        recognitionStatus.className = 'd-inline-block px-4 py-2 rounded';
+                        recognitionStatus.style.borderColor = '#444';
+                        recognitionStatus.style.background = '#222';
+                        recognitionText.textContent = 'AI Stopped';
+                        recognitionText.style.color = '#888';
+                    } else if (data.name) {
+                        if (data.recognized) {
+                            recognitionStatus.className = 'd-inline-block px-4 py-2 rounded recognized';
+                            recognitionText.innerHTML = '<i class="fas fa-check-circle mr-2"></i>' + data.name;
+                        } else {
+                            recognitionStatus.className = 'd-inline-block px-4 py-2 rounded unknown';
+                            recognitionText.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Unknown';
+                        }
+                    } else {
+                        recognitionStatus.className = 'd-inline-block px-4 py-2 rounded scanning';
+                        recognitionText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Scanning...';
+                    }
+                })
+                .catch(err => {
+                    recognitionText.textContent = 'Error';
+                });
+        }
+
+        updateAIStatus();
+        updateRecognitionStatus();
+        setInterval(updateAIStatus, 5000);
+        setInterval(updateRecognitionStatus, 1000);
+
+        startBtn.addEventListener('click', function() {
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Starting...';
+            fetch('{% url "capture_and_recognize" %}')
+                .then(response => {
+                    if (response.ok) {
+                        updateAIStatus();
+                        window.location.href = '{% url "monitor" %}';
+                    } else {
+                        alert('Failed to start tracking');
+                        startBtn.disabled = false;
+                        startBtn.innerHTML = '<i class="fas fa-play mr-2"></i>Start';
+                    }
+                })
+                .catch(err => {
+                    alert('Error starting tracking');
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '<i class="fas fa-play mr-2"></i>Start';
+                });
+        });
+
+        stopBtn.addEventListener('click', function() {
+            stopBtn.disabled = true;
+            stopBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Stopping...';
+            fetch('{% url "stop_tracking" %}')
+                .then(response => {
+                    updateAIStatus();
+                    window.location.href = '{% url "monitor" %}';
+                })
+                .catch(err => {
+                    alert('Error stopping tracking');
+                    stopBtn.disabled = false;
+                    stopBtn.innerHTML = '<i class="fas fa-stop mr-2"></i>Stop';
+                });
+        });
+
+        selector.addEventListener('change', function () {
+            const selectedId = this.value;
+
+            if (!selectedId) {
+                cameraContainer.style.display = 'none';
+                noCameraMessage.style.display = 'block';
+                return;
+            }
+
+            cameraContainer.style.display = 'block';
+            noCameraMessage.style.display = 'none';
+
+            wrappers.forEach(wrapper => {
+                const img = wrapper.querySelector('.cam-feed-img');
+                if (wrapper.id === selectedId) {
+                    wrapper.style.display = 'block';
+                    if (img && img.dataset.src) {
+                        img.src = img.dataset.src;
+                    }
+                } else {
+                    wrapper.style.display = 'none';
+                    if (img) img.src = '';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
